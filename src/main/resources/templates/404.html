@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="404">
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+     <link rel="shortcut icon" href="/img/icons/favicon.ico"/>
+
+    <!-- Bootstrap CSS -->    
+    <link href="css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+    <!-- bootstrap theme -->
+    <link href="css/bootstrap-theme.css" th:href="@{/css/bootstrap-theme.css}" rel="stylesheet"/>
+    <!--external css-->
+    <!-- font icon -->
+    <link href="css/elegant-icons-style.css" th:href="@{/css/elegant-icons-style.css}" rel="stylesheet" />
+    <link href="assets/font-awesome/css/font-awesome.css" th:href="@{/css/font-awesome.css}" rel="stylesheet" />
+    <!-- Custom styles -->
+    <link href="css/style.css" th:href="@{/css/style.css}" rel="stylesheet"/>
+    <link href="css/style-responsive.css" th:href="@{/css/style-responsive.css}" rel="stylesheet" />
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 -->
+    <!--[if lt IE 9]>
+    <script src="js/html5shiv.js"></script>
+    <script src="js/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body  th:fragment="404">
+   <div class="page-404">
+    <p class="text-404">404</p>
+    <h2>Aww Snap!</h2>
+    <p><img src="img/owi.png" width="68" height="170"/><h2 th:text="${message}"></h2><br/><a href="index">Return Home</a></p>
+  </div>
+  
+  </body>
+</html>

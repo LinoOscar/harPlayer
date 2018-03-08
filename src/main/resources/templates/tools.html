@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"	xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:fragment="tools">
+	<link rel="shortcut icon" href="/img/icons/favicon.ico"/>
+    <link rel="stylesheet" type="text/css" href="/css/harPlayer.css" />
+    <link rel="stylesheet" href="../css/bootstrap-datetimepicker.min.css"></link>
+    <link rel="stylesheet" href="../css/har.css"></link>
+	<link href="../static/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet" media="screen" />
+	<link href="../static/css/bootstrap-theme.min.css" th:href="@{/css/bootstrap-theme.min.css}" rel="stylesheet" media="screen" />
+	<!-- font icon -->
+	<link href="../static/css/elegant-icons-style.css" th:href="@{/css/elegant-icons-style.css}" rel="stylesheet" media="screen" />
+	<link href="../static/css/font-awesome.min.css" th:href="@{/css/font-awesome.min.css}" rel="stylesheet" media="screen" />
+	<!-- Custom styles -->
+	<link href="../static/css/widgets.css" th:href="@{/css/widgets.css}" rel="stylesheet" media="screen" />
+	<link href="../static/css/style.css" th:href="@{/css/style.css}" rel="stylesheet" media="screen" />
+	<link href="../static/css/style-responsive.css" th:href="@{/css/style-responsive.css}" rel="stylesheet" media="screen" />
+	<link href="../static/css/jquery-ui-1.10.4.min.css" th:href="@{/css/font-awesome.min.css}" rel="stylesheet" media="screen" />
+	<link href="../static/css/bootstrap-gtreetable.min.css" th:href="@{/css/bootstrap-gtreetable.min.css}" rel="stylesheet" media="screen"/>
+	
+
+	<script src="../js/jquery.js" type="text/javascript"></script>
+	<script src="../js/jquery-ui-1.10.4.min.js"></script>
+	<script src="../js/jquery-1.12.3.min.js"></script>
+	<script src="../js/jquery-ui-1.9.2.custom.min.js" type="text/javascript" ></script>
+	<script src="../js/jquery.browser.min.js" type="text/javascript"></script>
+	<!-- bootstrap -->
+	<script src="../js/bootstrap.min.js"></script>
+	<!-- nice scroll -->
+	<script src="../js/jquery.scrollTo.min.js"></script>
+	<script src="../js/jquery.nicescroll.js" type="text/javascript"></script>
+	<!--custome script for all page-->
+	<script src="../js/scripts.js"></script>
+	<!-- custom script for this page-->
+	<script src="../js/jquery.autosize.min.js"></script>
+	<script src="../js/jquery.placeholder.min.js"></script>
+	<script src="../js/jquery.slimscroll.min.js"></script>
+	<!-- script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js" type="text/javascript"></script> -->
+	<script src="../js/notify.min.js" type="text/javascript"></script>	
+	<script src="../js/notify.js" type="text/javascript"></script>	
+	<script type="text/javascript" src="../assets/vkbeauty/vkbeautify.js"></script>
+	<script type="text/javascript" src="../js/moment.min.js"></script>	
+	<script type="text/javascript" src="../js/moment-es.js"></script>	
+	<script type="text/javascript" src="../js/bootstrap-datetimepicker.min.js"></script>
+	
+
+      
+	<title>Har Player</title>
+	<meta charset="utf-8" />
+	
+<script  th:inline="javascript">
+//<![CDATA[
+           
+           
+var operationSelected='';
+var file1;
+var file2;
+var startLogsBKSCounter = 0;
+var versEnsLogs = 1;
+var entornoENSSel = "00";
+var accessTypeEns = "Neb";
+var gearCounter = 0;
+
+var nextinput = 0;
+
+var hasDrop = false;
+var hasDrop2 = false;
+
+function selectOperation(valueOp,data)
+{
+	$("#btnFullScreen").off("click");
+	$('#btnFullScreen').on('click', function(){
+		$.notify("FullScreen sólo permitida en Diff y Xslt","warning");
+	});
+
+	$("#compare").hide();
+	$(".container").show();
+	$("#div_regex").hide();
+	$("#xsltDiv").hide();
+	$("#restoOps").show();
+	
+	if((data==null)||(data =='')){
+		$("#tableResults").hide();
+	}
+	
+	
+	if ((valueOp==null) || (valueOp==undefined) || (valueOp=='')){
+	  valueOp='encode';
+	}
+		
+	operationSelected=valueOp;
+
+
+	$(".btnSelect").css({"color":"#337AB7","text-align":"center","cursor":"pointer","background-image":"linear-gradient(to bottom, #ffffff 0%, #f6f6f6 47%, #ededed 100%)"});
+
+	if (valueOp=='file'){
+		$("#btnFile").css({"color":"#FFF","text-align":"center","cursor":"pointer","border-radius":"0px 0px 0px 0px","background-image":"linear-gradient(to bottom, #337AB7 0px, #265A88 100%)"});
+		$("#toolDescDiv").removeAttr("style");
+		$("#toolDescDiv").off("mousedown");
+		$("#toolDescDiv").off("mouseup");		
+		$("#toolDescDiv").off("click");
+		$(window).off("keydown");$(window).off("keyup");
+		$("#toolDescDiv").css({"text-align":"center", "padding-top":"10px", "padding-bottom": "10px"}); 		
+
+	}
+	if(valueOp!='file')
+	{
+    	$("#edit2").css({"padding-bottom":"20px","display":"none","visibility":"hidden"});
+    	$("#lupa1").css({"display":"block","visibility":"visible"});
+    	$("#valueId2").val("");
+	}
+	if(valueOp!='BKS')
+	{
+		$("#editENS").css({"padding-bottom":"20px","display":"none","visibility":"hidden"});
+	}	
+	if ((valueOp=='file') && ((data!=null) && (data!=''))){
+    	prepareField2(data);
+    }
+}
+
+function calculate()
+{
+	if ((operationSelected=='undefined') || (operationSelected==null) || (operationSelected=='')){
+		operationSelected='encode';
+	}
+	else if ((operationSelected=='file')&&(hasDrop==false)){
+		$.notify("Arrastra un fichero al input", "warn");
+		$("#valueId").val('');
+		return false;
+	}
+	
+	//No ejecutamos si no tiene valor el input.
+	if($("#valueId").val() == ''){
+		$.notify("Es necesario introducir un valor", "warn");
+		return false;
+	}	
+	
+	operationInFile();
+
+}
+
+function allowDrop(ev) {
+	 ev.stopPropagation();
+	 ev.preventDefault();
+	 ev.dataTransfer.dropEffect = "copy";
+}
+
+function dropFile(ev) {
+	hasDrop=true;
+	ev.stopPropagation();
+    ev.preventDefault();
+    var data = ev.dataTransfer.files[0].name;
+    
+    document.getElementById('valueId').value=data;
+    file1=ev.dataTransfer.files[0];
+    
+    selectOperation("file",data);
+}
+
+function prepareField2(data)
+{
+    if (data.toLowerCase().indexOf(".har") !=-1)
+    {
+    	$("#edit2").css({"padding-bottom":"20px","display":"none","visibility":"hidden"});
+    	$("#lupa1").css({"display":"block","visibility":"visible"});
+    	$("#valueId2").val("");
+    	if(hasDrop==true){
+    		operationInFile();
+    	}
+    }   
+	 else{	
+      	$.notify("Fichero no aceptado", "error");
+      	$("#edit2").css({"padding-bottom":"20px","display":"none","visibility":"hidden"});
+		$("#valueId").val('');
+		return false;
+    }
+}
+
+
+function dropFile2(ev) {
+	
+	
+
+	ev.stopPropagation();
+    ev.preventDefault();
+    var data = ev.dataTransfer.files[0].name;
+
+    selectOperation("file",null);
+}
+
+
+function operationInFile()
+{
+	
+	var reader = new FileReader();
+		 
+	reader.readAsDataURL(file1);
+	
+    reader.onload = function(e) { 
+	      var contents = e.target.result;
+	
+	$.ajax({
+		url : "/tools",
+		type : 'post',
+		contentType : "application/x-www-form-urlencoded",
+		data: {fileName: file1.name,datacontent:contents},
+		success : function(response) {
+			document.write(response);
+			document.close();
+		}
+	});	      
+	
+    }
+}
+
+$( document ).ready(function() {
+
+	
+	$("html").niceScroll().remove();
+	
+	var myAlert = [[${message}]];
+		
+	if ((myAlert!=null) && (myAlert!='undefined') && (myAlert!=''))
+	{
+		$.notify(myAlert, {
+			className:'error',
+			clickToHide: true,
+			  autoHide: false
+			});
+	}
+	
+	
+	var myAccessType=[[${accessTypeReturn}]];
+	if (myAccessType!=null)
+		selectEnv4ENS(document.getElementById(myAccessType));  
+	
+	var myCountryReturn=[[${countryReturn}]];
+	if (myCountryReturn!=null)
+		selectCountry($("[entValue=" + myCountryReturn + "]"));  	
+	
+	var myUrlReturn=[[${urlReturn}]];
+	if (myUrlReturn!=null)
+		$("#editServer").val(myUrlReturn);
+	
+	var myUsuReturn=[[${usuReturn}]];
+	if (myUsuReturn!=null)
+		$("#editUsu").val(myUsuReturn);
+	
+	var myPassReturn=[[${passReturn}]];
+	if (myPassReturn!=null)
+		 $("#editPass").val(myPassReturn);
+	
+	var myValueRes = document.getElementById('valueResult');
+	gearCounter=0;
+	
+	if ((myValueRes!=null) && (myValueRes!=''))
+	{
+		var valueResReturned = [[${valueResult}]];
+	 	document.getElementById('valueResult').innerHTML=valueResReturned[gearCounter];
+	}
+	
+	 $('[data-toggle="tooltip"]').tooltip();
+	 
+	});
+	
+	
+	
+function copyValue(valueToCopy)
+{
+	 clipboard.writeText(valueToCopy);
+	 
+	 if (valueToCopy == '')
+	 	$.notify("Ctrl+C" , "error");
+	 else
+		 $.notify("Ctrl+C" , "success"); 
+	 
+    //window.prompt("Copy to clipboard: Ctrl+C, Enter", valueToCopy);
+}
+
+function colorInput(event)
+{
+	if (event.charCode == 32)
+	{
+		var textTemp = $('#valueId2').val();
+		var contTemp = (textTemp.match(/ /g) || []).length;
+		if (contTemp == 0)
+			$('#textEdit2').text('Now PrivateKey name (optional)->');
+		if (contTemp == 1)
+			$('#textEdit2').text('Now PrivateKey pass (Optional & Final)->');		
+	}
+}
+
+
+
+function tdHarNoHidderOver(myTd)
+{
+	$(myTd).find('strong').css("visibility","hidden");
+	$(myTd).find('a').css("visibility","visible");
+}
+
+function tdHarNoHidderOut(myTd)
+{
+	$(myTd).find('strong').css("visibility","visible");
+	$(myTd).find('a').css("visibility","hidden");
+}
+
+function openHiddenRow(row)
+{
+	if ($('#inside-'+row).hasClass("hidden"))
+		$('#inside-'+row).removeClass("hidden");
+	else
+		$('#inside-'+row).addClass("hidden");
+	
+	openTab('headers',($('#inside-'+row).find('li').first()));
+}
+
+function openTab(myTab,myTabElement)
+{
+	$(".headers").addClass("hidden");
+	$(".cookies").addClass("hidden");
+	$(".querystring").addClass("hidden");
+	$(".content").addClass("hidden");
+	$(".times").addClass("hidden");
+	$("."+myTab).removeClass("hidden");
+	
+	$(".liHeaders").removeClass("active");
+	$(myTabElement).addClass("active");
+}
+
+function parseContent(myParseHeader)
+{
+	if ($(myParseHeader).text() == 'Parse')
+	{
+		if ($(myParseHeader).hasClass('parsecookies'))
+		{
+			$('.parsecookies').text('Unparse');
+			$('.cookierowvalue').addClass("hidden");
+			$('.cookierowname').addClass("hidden");
+			$('.cookierowvalueDecode').removeClass("hidden");
+			$('.cookierownameDecode').removeClass("hidden");
+			
+		}
+		else if ($(myParseHeader).hasClass('parsequerystring'))
+		{
+			$('.parsequerystring').text('Unparse');
+			$('.querystringrowvalue').addClass("hidden");
+			$('.querystringrowname').addClass("hidden");
+			$('.querystringrowvalueDecode').removeClass("hidden");
+			$('.querystringrownameDecode').removeClass("hidden");		
+		}
+		
+	}
+	else
+	{
+		if ($(myParseHeader).hasClass('parsecookies'))
+		{
+			$('.parsecookies').text('Parse');
+			$('.cookierowvalue').removeClass("hidden");
+			$('.cookierowname').removeClass("hidden");
+			$('.cookierowvalueDecode').addClass("hidden");
+			$('.cookierownameDecode').addClass("hidden");
+			
+		}
+		else if ($(myParseHeader).hasClass('parsequerystring'))
+		{
+			$('.parsequerystring').text('Parse');
+			$('.querystringrowvalue').removeClass("hidden");
+			$('.querystringrowname').removeClass("hidden");
+			$('.querystringrowvalueDecode').addClass("hidden");
+			$('.querystringrownameDecode').addClass("hidden");		
+		}		
+	}
+}
+
+function selectHarRow(myElem,myRow)
+{
+	if ($(myElem).hasClass("checked"))
+	{
+		var stopHidden=false;
+		var y1=myRow-1;
+		if (y1==0) stopHidden=true;
+		while (stopHidden==false)
+		{
+			if (!$('#check-' + y1).hasClass("checked"))
+				$('#top-' + y1).removeClass("hidden");
+			else
+				stopHidden=true;
+			
+			y1--;
+			if (y1==0) stopHidden=true;
+		}
+		$(myElem).removeClass("checked");
+	}
+	else
+	{
+		for (var y1=1;y1<myRow;y1++)
+		{
+			if (!$('#check-' + y1).hasClass("checked"))
+				$('#top-' + y1).addClass("hidden");
+			
+			$('#inside-' + y1).addClass("hidden");
+		}
+		$(myElem).addClass("checked");
+	}
+}
+
+function previousGear()
+{
+	var valueResReturned = [[${valueResult}]];
+	
+	if (gearCounter > 0)
+		gearCounter--;
+	else
+		gearCounter = valueResReturned.length - 1;
+	
+ 	document.getElementById('valueResult').innerHTML=valueResReturned[gearCounter];
+}
+
+function postGear()
+{
+	var valueResReturned = [[${valueResult}]];
+	
+	if (gearCounter < valueResReturned.length - 1)
+		gearCounter++;
+	else
+		gearCounter=0;
+		
+ 	document.getElementById('valueResult').innerHTML=valueResReturned[gearCounter];
+}
+
+function padr(inStr,len)
+{
+	len = len - inStr.length;
+	
+	for (var i=0;i<len;i++)
+		inStr = inStr +  ' ';
+	
+	return inStr;
+}
+
+
+$(document).on({
+	ajaxSend: function(event, xhr, options) 
+    {
+		$("#loading").show();
+    },
+    ajaxComplete: function(event, xhr, options) 
+     { 
+    	$("#loading").hide();
+     }    
+});	
+
+	
+//]]>
+</script>
+</head>
+
+
+<body th:fragment="tools">
+
+<a href="#" class="back-to-top" style="display: inline;">
+	<i class="fa fa-arrow-circle-up"></i> 
+</a>
+
+<hr align="center" class="style-three"/>
+<table width="75%" height= "30px" border="0" align="center">
+	<tr>
+	<td width="12,5%" class="btnSelect" id="btnFile" style="color:#337AB7;text-align: center;cursor: pointer;border-radius: 0px 0px 0px 0px;background-image: linear-gradient(to bottom, #ffffff 0%, #f6f6f6 47%, #ededed 100%);"  th:text="HAR"></td>
+	</tr>
+</table>
+&nbsp;
+	<hr align="center" class="style-three"/>
+	<div id="4FullScreen">
+	<div id="restoOps">
+		<center><div style="text-align:center; padding-top:10px; padding-bottom: 10px;" id="toolDescDiv"></div></center>		
+		<div class="container" id="div_head_tools" style="padding-bottom:20px;">
+	  	  <div class="row">
+    			<div class="col-md-4" align="right" style="padding-top:5px;padding-right:0px;" id="cadenaTool">Drop har file:</div>
+    			<div class="col-md-4"><input class="form-control" id='valueId' th:value="${valueId}" ondragover="allowDrop(event)" ondrop="dropFile(event)" onkeypress="javascript:if (event.keyCode == 13){ calculate(); }"></input></div>
+    			<div id='lupa1' class="col-md-4" style="display:block;visibility:visible"><img align="left" onclick="javascript:calculate()" style="cursor:pointer;margin-left:-20px;margin-top: 2px;" data-toggle="tooltip" data-placement="bottom" title="Calculate" src='/img/icons/search-line-icon.png'/></div>
+			</div>
+		</div>	
+		<table th:if="(${valueResult} != null) AND (${valueResult.size()} > 0) AND (${valueResult.get(0)} != '')"  style="width:50%;" class="table table-striped table-advance table-hover" align="center" id="tableResults">
+		<tbody>
+		  <tr class="alt" align="left">
+		    <td id='valueResult' width="92%">		    
+		    	<a  style="font-size:15;color:#666;font-family:Arial" align="left" th:text="${valueResult.get(0)}"></a>
+			</td>
+		  </tr>
+		  <tr align="left">
+		    <td>
+			</td>
+		  </tr>
+		  </tbody>
+		</table>
+		<table th:unless="(${valueResult} != null) AND (${valueResult.size()} > 0) AND (${valueResult.get(0)} != '')"  class="table table-condensed table-hover sh-table" id="tableResults">
+		<thead>
+		<tr>
+			<th width="50%" data-sort="url">Url</th>
+			<th width="10%" data-sort="int" class="stat">Status</th>
+			<th width="10%" data-sort="string">Type</th>
+			<th width="10%" data-sort="int" class="stat">Size</th>
+			<th width="20%" data-sort="int" class="timeline text-center">Timeline</th>
+		</tr>
+		</thead>				
+		<div th:each="harRow, iterHar : ${har}" th:remove="tag">
+		<tr th:id="'top-' + ${iterHar.count}" class="top bg-redirect" th:style="'background-color:' + ${harRow.getNewRequestColor()}">
+				<td width="50%" class="url" onmouseover="tdHarNoHidderOver(this)" onmouseout="tdHarNoHidderOut(this)">
+				<div width="300px" >
+					<b class="order" th:text="${iterHar.count} + '.'"></b>
+					<i style="cursor:pointer" class="glyphicon glyphicon-chevron-down" data-toggle-sign="glyphicon glyphicon-chevron-up" th:onclick="'openHiddenRow(' + ${iterHar.count} + ')'"></i>
+					<input th:id="'check-' + ${iterHar.count}" type="checkbox" class="checkHarRow" th:onclick="'selectHarRow(this,' + ${iterHar.count} + ')'"><img style="cursor:pointer;margin-left:5px" th:onclick="'window.open(\'' + ${harRow.getRequestURLLocalHost()} + '\')'" title="CopyPaste" height="12" width="18" th:src="@{/img/icons/rightBlue.png}"/></input>
+					<a style="visibility:hidden;cursor:pointer" th:onclick="'window.open(\'' + ${harRow.getRequesUrl()} + '\')'" th:text="${harRow.getRequesUrlMiddle()}"></a>
+					<strong>&nbsp;&nbsp;&nbsp;&nbsp;<strong th:text="${harRow.getRequestMethod()} + ' '"></strong><strong style="color:red" th:text="${harRow.getRequestUrlAssembly()}"></strong><strong class="text-success" th:text="${harRow.getRequesUrlShort()}"></strong><em  th:text="${harRow.getRequesUrlGetPart()}"></em></strong>
+				</div>
+				</td>
+				<td th:if="${harRow.getResponseStatus()} == '200'" style="color:blue" class="status" width="10%" th:attr="title=${harRow.getResponseStatusText()}" th:text="${harRow.getResponseStatus()}"></td>
+				<td th:if="${harRow.getResponseStatus()} == '404'" style="color:red" class="status" width="10%" th:attr="title=${harRow.getResponseStatusText()}" th:text="${harRow.getResponseStatus()}"></td>
+				<td th:if="${harRow.getResponseStatus()} == '304'"  class="status" width="10%" th:attr="title=${harRow.getResponseStatusText()}" th:text="${harRow.getResponseStatus()} + ' (cache)'"></td>
+				<td th:if="(${harRow.getResponseStatus()} != '404') AND (${harRow.getResponseStatus()} != '200') AND (${harRow.getResponseStatus()} != '304')"  class="status" width="10%" th:attr="title=${harRow.getResponseStatusText()}" th:text="${harRow.getResponseStatus()}"></td>
+				
+				<td class="type" width="10%"   th:attr="title=${harRow.getResponseContentMimeType()}" th:text="${harRow.getResponseContentMimeTypeShort()}"></td>
+				<td class="size" width="10%"   th:text="${harRow.getResponseBodySize()} + ' Bytes'"></td>
+				<td class="timeline" width="20%"  data-sort-value="1">
+				<div>
+					<div class="progress">
+						<span class="totalTime" th:style="'color:black;left:' + ${((new Double(harRow.getTimingsStart()).doubleValue() + new Double(harRow.getTimingsSend()).doubleValue() + new Double(harRow.getTimingsWait()).doubleValue() + new Double(harRow.getTimingsReceive()).doubleValue())/ new Double(harRow.getPageMaxMs()).doubleValue()) * 100.00 - 10} + '%'" th:text="${harRow.getTime()} + 'ms.'"></span>
+						<div class="progress-bar progress-bar-space" th:style="'width:' + ${(new Double(harRow.getTimingsStart()).doubleValue() / new Double(harRow.getPageMaxMs()).doubleValue()) * 100.00} + '%'" th:text="${(new Double(harRow.getTimingsStart()).doubleValue() / new Double(harRow.getPageMaxMs()).doubleValue()) * 100.00} + '%'"></div>
+						<!-- div class="progress-bar progress-bar-warning" style="width:0.050519700750506664%"></div>
+						<div class="progress-bar progress-bar-last" style="width:0.07017213495438131%"></div>
+						<div class="progress-bar progress-bar-info" style="width:0.185580172312317%"></div>
+						<div class="progress-bar progress-bar-secondary" style="width:0.040646411762634116%"></div-->
+						<div class="progress-bar progress-bar-primary" th:style="'width:' + ${(new Double(harRow.getTimingsSend()).doubleValue() / new Double(harRow.getPageMaxMs()).doubleValue()) * 100.00} + '%'"></div>
+						<div class="progress-bar progress-bar-danger" th:style="'width:' + ${(new Double(harRow.getTimingsWait()).doubleValue() / new Double(harRow.getPageMaxMs()).doubleValue()) * 100.00} + '%'"></div>
+						<div class="progress-bar progress-bar-success" th:style="'width:' + ${(new Double(harRow.getTimingsReceive()).doubleValue() / new Double(harRow.getPageMaxMs()).doubleValue()) * 100.00} + '%'"></div>
+					</div>
+			
+					<span class="domloaded" th:style="'left:' + ${(new Double(harRow.getPageDOMLoaded()).doubleValue() / new Double(harRow.getPageMaxMs()).doubleValue()) * 100.00} + '%'" th:title="'DOMContentLoaded (' + ${harRow.getPageDOMLoaded()} + 'ms.)'"></span>
+					<span class="windowloaded"  th:style="'left:' + ${(new Double(harRow.getPageContentLoaded()).doubleValue() / new Double(harRow.getPageMaxMs()).doubleValue()) * 100.00} + '%'" th:title="'Page Loaded (' + ${harRow.getPageContentLoaded()} + 'ms.)'"></span>
+				</div>
+				</td>	
+		</tr>		
+		<tr class="inside hidden" th:id="'inside-' + ${iterHar.count}">
+			<td colspan="5">
+			<ul class="nav nav-tabs">
+				<li class="liHeaders active" onclick="openTab('headers',this);"><a href="#headers">Headers</a></li><li class="liHeaders" onclick="openTab('cookies',this)"><a href="#cookies">Cookies</a></li><li class="liHeaders" onclick="openTab('querystring',this)"><a href="#querystring">Query String</a></li><li class="liHeaders" onclick="openTab('content',this)"><a href="#content">Content</a></li><li class="liHeaders" onclick="openTab('times',this)"><a href="#times">Times</a></li>
+			</ul>
+			<div class="headers" style="display: block; width: 930px;">
+				<h3 class="headers-title"><small>Request Headers</small></h3>
+				<dl class="dl-horizontal">
+					<dt></dt><dd style="color:red" th:text="'&lt;' + ${harRow.getRequestHeaderSize()} + ' Bytes&gt;'"></dd>
+					<div th:each="requestHeaderRow : ${harRow.getRequestHeaders()}" th:remove="tag">
+						<dt th:text="${requestHeaderRow.getName()}"></dt><dd th:text="${requestHeaderRow.getValue()}"></dd>
+					</div>
+				</dl>
+				<h3 class="headers-title"><small>Response Headers</small></h3>
+				<dl class="dl-horizontal">
+					<dt></dt><dd style="color:red" th:text="'&lt;' + ${harRow.getResponseHeadersSize()} + ' Bytes&gt;'"></dd>
+					<div th:each="responseHeaderRow : ${harRow.getResponseHeaders()}" th:remove="tag">
+						<dt th:text="${responseHeaderRow.getName()}"></dt><dd th:text="${responseHeaderRow.getValue()}"></dd>
+					</div>
+				</dl>
+			</div>
+			<div class="cookies hidden" style="display: block; width: 930px;">
+				<p class="parsecookies" aligh="right" style="width:900px;color:blue;text-decoration:underline;position:absolute;text-align:right;margin-right:2px;font-size:11px;cursor:pointer" onclick="parseContent(this)">Parse</p>
+				<h3 class="headers-title"><small>Request Cookies</small></h3>
+				<dl class="dl-horizontal">
+					<div th:each="requestCookieRow : ${harRow.getRequestCookies()}" th:remove="tag">
+						<dt class="cookierowname" th:text="${requestCookieRow.getName()}"></dt><dd class="cookierowvalue" th:text="${requestCookieRow.getValue()}"></dd>
+						<dt class="cookierownameDecode hidden" th:text="${requestCookieRow.getName()}"></dt><dd class="cookierowvalueDecode hidden" th:text="${requestCookieRow.getValueDecode()}"></dd>
+					</div>
+				</dl>
+				<h3 class="headers-title"><small>Response Cookies</small></h3>
+				<dl class="dl-horizontal">
+					<div th:each="responseCookieRow : ${harRow.getResponseCookies()}" th:remove="tag">
+						<dt class="cookierowname" th:text="${responseCookieRow.getName()}"></dt><dd class="cookierowvalue" th:text="${responseCookieRow.getValue()}"></dd>
+						<dt class="cookierownameDecode hidden" th:text="${responseCookieRow.getName()}"></dt><dd class="cookierowvalueDecode hidden" th:text="${responseCookieRow.getValueDecode()}"></dd>
+					</div>				
+				</dl>
+			</div>
+			<div class="querystring hidden" style="display: block; width: 930px;">
+			<p class="parsequerystring" aligh="right" style="width:900px;color:blue;text-decoration:underline;position:absolute;text-align:right;margin-right:2px;font-size:11px;cursor:pointer" onclick="parseContent(this)">Parse</p>
+				<h3 class="headers-title"><small>Get Data</small></h3>
+				<dl class="dl-horizontal">
+					<div th:each="requestGetDataRow : ${harRow.getRequestQueryString()}" th:remove="tag">
+						<dt style="width:300px" class="querystringrowname" th:text="${requestGetDataRow.getName()}"></dt><dd style="margin-left:320px" class="querystringrowvalue" th:text="${requestGetDataRow.getValue()}"></dd>
+						<dt style="width:300px" class="querystringrownameDecode hidden" th:text="${requestGetDataRow.getName()}"></dt><dd style="margin-left:320px" class="querystringrowvalueDecode hidden" th:text="${requestGetDataRow.getValueDecode()}"></dd>
+					</div>				
+				</dl>
+				<h3 class="headers-title"><small>Post Data</small></h3>				
+				<dl class="dl-horizontal">
+					<dt style="color:red"  th:if="${harRow.getRequestPostDataMymeType()} != ''">Mime-Type</dt><dd style="color:red"  th:if="${harRow.getRequestPostDataMymeType()} != ''" th:text="${harRow.getRequestPostDataMymeType()}"></dd>
+					<div th:each="requestPostDataRow : ${harRow.getRequestPostData()}" th:remove="tag">
+						<dt style="width:300px" class="querystringrowname" th:text="${requestPostDataRow.getName()}"></dt><dd style="margin-left:320px" class="querystringrowvalue" th:text="${requestPostDataRow.getValue()}"></dd>
+						<dt style="width:300px" class="querystringrownameDecode hidden" th:text="${requestPostDataRow.getName()}"></dt><dd style="margin-left:320px" class="querystringrowvalueDecode hidden" th:text="${requestPostDataRow.getValueDecode()}"></dd>
+					</div>					
+				</dl>
+			</div>
+			<div class="content hidden" style="display: block; width: 1200px;">
+				<pre class="contentScroll" th:text="${harRow.getResponseContentText()}"></pre>
+			</div>
+			<div class="times hidden" style="display: block; width: 930px;">
+				<h3 class="headers-title"><small>Page times</small></h3>
+				<dl class="dl-horizontal">
+					<dt style="width:300px">Start time</dt><dd style="margin-left:320px" th:text="${harRow.getPageStartedDateTimeFormated()}"></dd>
+					<dt style="width:300px">DOM Loaded</dt><dd style="margin-left:320px" th:text="${harRow.getPageDOMLoaded()} + ' ms.'"></dd>
+					<dt style="width:300px">Content Loaded</dt><dd style="margin-left:320px" th:text="${harRow.getPageContentLoaded()} + ' ms.'"></dd>
+					<dt style="width:300px">Totaltime</dt><dd style="margin-left:320px" th:text="${harRow.getPageMaxMs()} + ' ms.'"></dd>
+				</dl>
+				<h3 class="headers-title"><small>Request Times</small></h3>				
+				<dl class="dl-horizontal">
+					<dt style="width:300px">Start time</dt><dd style="margin-left:320px" th:text="${harRow.getStartedDateTimeFormated()}"></dd>
+					<dt style="width:300px">Total time</dt><dd style="margin-left:320px" th:text="${harRow.getTime()} + ' ms.'"></dd>
+					<dt style="width:300px">Time To Start</dt><dd style="margin-left:320px" th:text="${harRow.getTimingsStart()} + ' ms.'"></dd>
+					<dt style="width:300px">Time Sending</dt><dd style="margin-left:320px" th:text="${harRow.getTimingsSend()} + ' ms.'"></dd>
+					<dt style="width:300px">Time Wating</dt><dd style="margin-left:320px" th:text="${harRow.getTimingsWait()} + ' ms.'"></dd>
+					<dt style="width:300px">Time Receiving</dt><dd style="margin-left:320px" th:text="${harRow.getTimingsReceive()} + ' ms.'"></dd>
+				</dl>
+			</div>			
+			</td>			
+		</tr>	
+		</div>
+		</table>
+	</div>
+
+</div>
+
+<span style="float:right" th:if="${har} != null AND ${har.size()} > 0" th:text="${har.size()} + ' resultados'"></span>
+
+<div><img id='loading' style="z-index:7;display:none;position:fixed;top:50%;left:50%" src='/img/loading.gif'/></div>
+	
+</body>
+</html>
